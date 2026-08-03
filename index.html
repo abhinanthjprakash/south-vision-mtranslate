@@ -10,7 +10,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Manjari:wght@400;700&family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <style>.hidden{display:none!important;}</style>
+    <style>
+    .hidden{display:none!important;}
+    .sug-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid #6366f1;border-top:none;border-radius:0 0 8px 8px;max-height:240px;overflow-y:auto;z-index:1000;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.12);}
+    .sug-dropdown.show{display:block;}
+    .sug-dropdown .sug-item{padding:10px 16px;cursor:pointer;font-size:18px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;font-family:'Noto Sans Malayalam',sans-serif;}
+    .sug-dropdown .sug-item:hover,.sug-dropdown .sug-item.active{background:#eef2ff;}
+    .sug-dropdown .sug-item .ml{font-size:22px;flex:1;}
+    .sug-dropdown .sug-item .badge{font-size:10px;padding:2px 6px;border-radius:3px;font-weight:600;}
+    .sug-dropdown .sug-item .badge.local{background:#6366f1;color:#fff;}
+    .sug-dropdown .sug-item .badge.google{background:#ea580c;color:#fff;}
+    </style>
     <link rel="icon" type="image/gif" href="img/logo.gif">
     <script type="text/javascript">
         (function(c,l,a,r,i,t,y){
@@ -63,7 +73,10 @@
     <div class="editor-section">
         <div class="card">
             <div class="card-header"><div class="card-header-title"><img src="img/logo.gif" alt=""> Malayalam Editor</div><span class="card-header-badge">Type here in Malayalam</span></div>
-            <textarea id="editor" placeholder="ഇവിടെ മലയാളം ടൈപ്പ് ചെയ്യുക...&#10;Type Malayalam here...&#10;Or use Manglish mode to type in English!&#10;&#10;Example: 'ente peru' → 'എന്റെ പേര്'"></textarea>
+            <div style="position:relative;">
+                <textarea id="editor" placeholder="ഇവിടെ മലയാളം ടൈപ്പ് ചെയ്യുക...&#10;Type Malayalam here...&#10;Or use Manglish mode to type in English!&#10;&#10;Example: 'ente peru' → 'എന്റെ പേര്'"></textarea>
+                <div class="sug-dropdown" id="sug-dropdown"></div>
+            </div>
         </div>
         <div class="card">
             <div class="card-header"><div class="card-header-title"><img src="img/logo.gif" alt=""> Conversion Output</div><span class="card-header-badge">Result</span></div>
@@ -114,5 +127,6 @@
 <script src="js/keyboard.js"></script>
 <script src="js/charmap.js"></script>
 <script src="js/app.js"></script>
+<script src="js/suggestions-v2.js"></script>
 </body>
 </html>
