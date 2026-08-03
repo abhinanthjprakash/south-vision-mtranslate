@@ -504,8 +504,7 @@ const App = {
         win.document.write('<style>');
         win.document.write('*{margin:0;padding:0;box-sizing:border-box;}');
         win.document.write('body{background:#1c1917;color:#f5f5f4;font-family:"Noto Sans Malayalam",sans-serif;overflow:hidden;}');
-        win.document.write('.prompter{font-size:48px;line-height:1.8;padding:60px 60px 100px 60px;white-space:pre-wrap;animation:scroll 120s linear infinite;}');
-        win.document.write('@keyframes scroll{0%{transform:translateY(100vh);}100%{transform:translateY(-100%);}}');
+        win.document.write('.prompter{font-size:48px;line-height:1.8;padding:60px 60px 100px 60px;white-space:pre-wrap;position:absolute;left:0;right:0;}');
         win.document.write('.speed-bar{position:fixed;bottom:0;left:0;right:0;background:#44403c;padding:10px 20px;display:flex;align-items:center;gap:15px;z-index:10;}');
         win.document.write('.speed-bar button{background:#d97706;border:none;color:white;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;}');
         win.document.write('.speed-bar input{flex:1;}');
@@ -514,8 +513,19 @@ const App = {
         win.document.write('<div class="speed-bar">');
         win.document.write('<button onclick="window.close()">Close</button>');
         win.document.write('<span style="font-size:12px;color:#a8a29e;">Speed:</span>');
-        win.document.write('<input type="range" min="30" max="600" value="120" id="speed-slider" oninput="document.getElementById(\'prompter-text\').style.animationDuration=this.value+\'s\'">');
+        win.document.write('<input type="range" min="1" max="20" value="3" id="speed-slider">');
         win.document.write('</div>');
+        win.document.write('<script>');
+        win.document.write('var el=document.getElementById("prompter-text");');
+        win.document.write('var slider=document.getElementById("speed-slider");');
+        win.document.write('var y=window.innerHeight;');
+        win.document.write('setInterval(function(){');
+        win.document.write('  var s=parseInt(slider.value)||3;');
+        win.document.write('  y-=s*0.3;');
+        win.document.write('  if(y<-el.offsetHeight-300)y=window.innerHeight+300;');
+        win.document.write('  el.style.top=y+"px";');
+        win.document.write('},50);');
+        win.document.write('</script>');
         win.document.write('</body></html>');
         win.document.close();
         // Store reference for live updates from editor
