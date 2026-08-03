@@ -29,6 +29,9 @@ const App = {
         if (manglishIndicator) manglishIndicator.style.display = 'inline-block';
         const editorEl = document.getElementById('editor');
         if (editorEl) editorEl.placeholder = 'Type in English (Manglish)... e.g., "ente peru" → "എന്റെ പേര്"';
+        // Show the Malayalam preview box on load since Manglish starts ON
+        const previewBox = document.getElementById('malayalam-preview-box');
+        if (previewBox) previewBox.style.display = '';
 
         this.updateCounters();
         this.updateFMLPreview();
@@ -393,6 +396,8 @@ const App = {
         if (!text) {
             document.getElementById('fml-preview').textContent = 'FML output will appear here...';
             document.getElementById('ml-preview').textContent = 'ML output will appear here...';
+            const up = document.getElementById('unicode-preview');
+            if (up) up.textContent = 'Type in Manglish to see Malayalam here...';
             return;
         }
 
