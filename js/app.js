@@ -29,16 +29,19 @@ const App = {
         if (manglishIndicator) manglishIndicator.style.display = 'inline-block';
         const editorEl = document.getElementById('editor');
         if (editorEl) editorEl.placeholder = 'Type in English (Manglish)... e.g., "ente peru" → "എന്റെ പേര്"';
-        // Show the Malayalam preview box on load since Manglish starts ON
-        const previewBox = document.getElementById('malayalam-preview-box');
-        if (previewBox) {
-            previewBox.classList.remove('hidden');
-            // Also set directly to be absolutely sure
-            previewBox.setAttribute('style', 'background:#fefce8;border:2px dashed #eab308;border-radius:8px;');
-        }
 
         this.updateCounters();
         this.updateFMLPreview();
+
+        // Show the Malayalam preview box on load since Manglish starts ON.
+        // Use setTimeout to ensure this runs after all DOM/layout updates.
+        setTimeout(() => {
+            const previewBox = document.getElementById('malayalam-preview-box');
+            if (previewBox) {
+                previewBox.classList.remove('hidden');
+                previewBox.style.display = 'block';
+            }
+        }, 100);
 
         // Editor input handler
         const editor = document.getElementById('editor');
