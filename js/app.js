@@ -331,11 +331,17 @@ const App = {
                 btn.textContent = '✓ Manglish ON';
                 document.getElementById('manglish-indicator').style.display = 'inline-block';
                 document.getElementById('editor').placeholder = 'Type in English (Manglish)... e.g., "ente peru" → "എന്റെ പേര്"';
+                // Show the Malayalam preview
+                const up = document.getElementById('unicode-preview');
+                if (up && up.parentElement) (document.getElementById('malayalam-preview-box')||up.parentElement).style.display = '';
             } else {
                 btn.classList.remove('active');
                 btn.textContent = 'Manglish';
                 document.getElementById('manglish-indicator').style.display = 'none';
                 document.getElementById('editor').placeholder = 'Type or paste Malayalam text here...';
+                // Hide the Malayalam preview
+                const up = document.getElementById('unicode-preview');
+                if (up && up.parentElement) (document.getElementById('malayalam-preview-box')||up.parentElement).style.display = 'none';
             }
         });
     },
@@ -391,15 +397,20 @@ const App = {
         }
 
         let unicodeText = text;
-        // Auto-convert if text has English (Manglish) letters
-        if (/[a-zA-Z]/.test(text)) {
-            unicodeText = Manglish.toUnicode(text);
+        // Auto-convert if text has English (Manglish) letters AND Manglish mode is ON
+        if (this.manglishMode && /[a-zA-Z]/.test(text)) {
+            unicodeText = Manglish.toUnicode(text, { final: false });
         }
 
-        // Update the Malayalam preview so user can visually confirm correctness
+        // Update the Malayalam preview — only visible when Manglish is ON
         const unicodePreview = document.getElementById('unicode-preview');
         if (unicodePreview) {
-            unicodePreview.textContent = unicodeText || 'Type in Manglish to see Malayalam here...';
+            if (this.manglishMode) {
+                unicodePreview.parentElement.style.display = '';
+                unicodePreview.textContent = unicodeText || 'Type in Manglish to see Malayalam here...';
+            } else {
+                unicodePreview.parentElement.style.display = 'none';
+            }
         }
 
         const fmlText = Converter.unicodeToFML(unicodeText);
