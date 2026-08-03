@@ -513,14 +513,14 @@ const App = {
         win.document.write('<div class="speed-bar">');
         win.document.write('<button onclick="window.close()">Close</button>');
         win.document.write('<span style="font-size:12px;color:#a8a29e;">Speed:</span>');
-        win.document.write('<input type="range" min="1" max="50" value="5" id="speed-slider">');
+        win.document.write('<input type="range" min="1" max="50" value="25" id="speed-slider">');
         win.document.write('</div>');
         win.document.write('<script>');
         win.document.write('var el=document.getElementById("prompter-text");');
         win.document.write('var slider=document.getElementById("speed-slider");');
         win.document.write('var y=window.innerHeight;');
         win.document.write('setInterval(function(){');
-        win.document.write('  var s=parseInt(slider.value)||5;');
+        win.document.write('  var s=parseInt(slider.value)||25;');
         win.document.write('  y-=s*2;');
         win.document.write('  if(y<-el.offsetHeight-300)y=window.innerHeight+300;');
         win.document.write('  el.style.top=y+"px";');
