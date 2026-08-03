@@ -355,6 +355,12 @@ const App = {
             this.convertManglishRealTime();
         }
 
+        // Live update teleprompter if open
+        if (this._prompterWindow && !this._prompterWindow.closed) {
+            const text = document.getElementById('editor').value;
+            const display = /[a-zA-Z]/.test(text) ? Manglish.toUnicode(text) : text;
+            this._updatePrompter(display);
+        }
     },
 
     /**
@@ -499,48 +505,39 @@ const App = {
         win.document.write('.speed-bar button{background:#d97706;border:none;color:white;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;}');
         win.document.write('.speed-bar input{flex:1;}');
         win.document.write('</style></head><body>');
-        win.document.write('<div class="prompter" id="prompter-text">' + displayText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>');
+        win.document.write('<div class="prompter" id="prompter-text"></div>');
         win.document.write('<div class="speed-bar">');
         win.document.write('<button onclick="window.close()">Close</button>');
         win.document.write('<span style="font-size:12px;color:#a8a29e;">Speed:</span>');
-        win.document.write('<input type="range" min="1" max="30" value="8" id="speed-slider">');
+        win.document.write('<input type="range" min="10" max="200" value="60" id="speed-slider" oninput="speedVal=parseInt(this.value)">');
         win.document.write('</div>');
-        // Smooth GPU-accelerated scroll + live updates
         win.document.write('<script>');
         win.document.write('var el=document.getElementById("prompter-text");');
         win.document.write('var slider=document.getElementById("speed-slider");');
-        win.document.write('var lastText=el.textContent;');
-        win.document.write('var y=window.innerHeight;');
-        win.document.write('var lastTime=0;');
+        win.document.write('var y=window.innerHeight, lastTime=0, speedVal=60;');
         win.document.write('function scroll(now){');
         win.document.write('  if(!lastTime)lastTime=now;');
-        win.document.write('  var dt=Math.min(now-lastTime,50);');
-        win.document.write('  lastTime=now;');
-        win.document.write('  var speed=(parseInt(slider.value)||8)*0.03;');
-        win.document.write('  y-=speed*dt;');
+        win.document.write('  var dt=Math.min(now-lastTime,50);lastTime=now;');
+        win.document.write('  y-=speedVal*0.015*dt;');
         win.document.write('  if(y<-el.offsetHeight-200)y=window.innerHeight+200;');
         win.document.write('  el.style.transform="translateY("+y+"px)";');
         win.document.write('  requestAnimationFrame(scroll);');
         win.document.write('}');
         win.document.write('requestAnimationFrame(scroll);');
-        win.document.write('function poll(){');
-        win.document.write('  try{');
-        win.document.write('    var ed=window.opener.document.getElementById("editor");');
-        win.document.write('    if(!ed){setTimeout(poll,800);return;}');
-        win.document.write('    var raw=ed.value;');
-        win.document.write('    if(!raw){setTimeout(poll,800);return;}');
-        win.document.write('    var conv=/[a-zA-Z]/.test(raw)?window.opener.Manglish.toUnicode(raw):raw;');
-        win.document.write('    if(conv!==lastText){');
-        win.document.write('      lastText=conv;el.textContent=conv;');
-        win.document.write('      if(y<-el.offsetHeight-200)y=window.innerHeight+200;');
-        win.document.write('    }');
-        win.document.write('  }catch(e){}');
-        win.document.write('  setTimeout(poll,800);');
-        win.document.write('}');
-        win.document.write('setTimeout(poll,800);');
         win.document.write('</script>');
         win.document.write('</body></html>');
         win.document.close();
+        // Store reference for live updates from editor
+        this._prompterWindow = win;
+        this._updatePrompter(displayText);
+    },
+
+    _updatePrompter(text) {
+        if (!this._prompterWindow || this._prompterWindow.closed) return;
+        try {
+            const el = this._prompterWindow.document.getElementById('prompter-text');
+            if (el) el.textContent = text;
+        } catch(e) { this._prompterWindow = null; }
     },
 
     /**
