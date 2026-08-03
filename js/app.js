@@ -22,15 +22,7 @@ const App = {
         this.updateCounters();
         this.updateFMLPreview();
 
-        // Load last saved text from localStorage
-        const saved = localStorage.getItem('south-vision-mtranslate-text');
-        if (saved) {
-            document.getElementById('editor').value = saved;
-            this.updateCounters();
-            this.updateFMLPreview();
-        }
-
-        // Auto-save to localStorage on input
+        // Editor input handler
         const editor = document.getElementById('editor');
         editor.addEventListener('input', () => {
             this.onEditorInput();
@@ -322,9 +314,6 @@ const App = {
             this.convertManglishRealTime();
         }
 
-        // Save to localStorage
-        const editor = document.getElementById('editor');
-        localStorage.setItem('south-vision-mtranslate-text', editor.value);
     },
 
     /**
