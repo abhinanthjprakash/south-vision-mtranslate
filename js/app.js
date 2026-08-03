@@ -36,43 +36,70 @@ const App = {
         // Copy to FML Series
         document.getElementById('btn-copy-fml').addEventListener('click', () => {
             const editor = document.getElementById('editor');
-            const text = editor.value;
+            const text = editor.value.trim();
             if (!text) {
-                this.showToast('Nothing to convert! Type some Malayalam text first.', 'warning');
+                this.showToast('Nothing to convert! Type something first.', 'warning');
                 return;
             }
+
+            // Auto-detect: if text has English letters but no Malayalam, auto-Manglish it
             let unicodeText = text;
-            if (this.manglishMode) {
+            const hasMalayalam = /[à´€-àµ¿]/.test(text);
+            const hasEnglish = /[a-zA-Z]/.test(text);
+
+            if (!hasMalayalam && hasEnglish) {
+                // Looks like Manglish â€” auto-convert!
+                unicodeText = Manglish.toUnicode(text);
+            } else if (this.manglishMode) {
                 unicodeText = Manglish.toUnicode(text);
             }
-            const fmlText = Converter.unicodeToFML(unicodeText);
-            if (fmlText === unicodeText) {
-                this.showToast('No Malayalam characters found to convert.', 'warning');
+
+            if (unicodeText === text && !hasMalayalam) {
+                this.showToast('No Malayalam found! Type in Malayalam or enable Manglish mode.', 'warning');
                 return;
             }
+
+            const fmlText = Converter.unicodeToFML(unicodeText);
+
+            // Update preview panel so user can see the result
+            document.getElementById('fml-preview').textContent = fmlText;
+            document.getElementById('ml-preview').textContent = Converter.unicodeToML(unicodeText);
+
             this.copyToClipboard(fmlText);
-            this.showToast('Copied to FML Series! Paste in Photoshop/Illustrator with FML font.', 'success');
+            this.showToast('âœ… Copied! Paste in Photoshop/Illustrator with FML font.', 'success');
         });
 
         // Copy to ML Series
         document.getElementById('btn-copy-ml').addEventListener('click', () => {
             const editor = document.getElementById('editor');
-            const text = editor.value;
+            const text = editor.value.trim();
             if (!text) {
-                this.showToast('Nothing to convert! Type some Malayalam text first.', 'warning');
+                this.showToast('Nothing to convert! Type something first.', 'warning');
                 return;
             }
+
             let unicodeText = text;
-            if (this.manglishMode) {
+            const hasMalayalam = /[à´€-àµ¿]/.test(text);
+            const hasEnglish = /[a-zA-Z]/.test(text);
+
+            if (!hasMalayalam && hasEnglish) {
+                unicodeText = Manglish.toUnicode(text);
+            } else if (this.manglishMode) {
                 unicodeText = Manglish.toUnicode(text);
             }
-            const mlText = Converter.unicodeToML(unicodeText);
-            if (mlText === unicodeText) {
-                this.showToast('No Malayalam characters found to convert.', 'warning');
+
+            if (unicodeText === text && !hasMalayalam) {
+                this.showToast('No Malayalam found! Type in Malayalam or enable Manglish mode.', 'warning');
                 return;
             }
+
+            const mlText = Converter.unicodeToML(unicodeText);
+
+            document.getElementById('fml-preview').textContent = Converter.unicodeToFML(unicodeText);
+            document.getElementById('ml-preview').textContent = mlText;
+
             this.copyToClipboard(mlText);
-            this.showToast('Copied to ML Series!', 'success');
+            this.showToast('âœ… Copied! Paste with ML-TT font.', 'success');
         });
 
         // Paste from ML/FML
@@ -393,36 +420,63 @@ const App = {
     },
 
     /**
-     * Copy text to clipboard
+     * Copy text to clipboard with fallback â€” shows the text in a popup if copy fails
      */
     copyToClipboard(text) {
+        // Try modern clipboard API first
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).catch(() => {
-                this.fallbackCopy(text);
+            navigator.clipboard.writeText(text).then(() => {
+                // Success â€” already showed toast from the calling function
+            }).catch(() => {
+                // Clipboard API failed â€” show text for manual copy
+                this.showCopyPopup(text);
             });
         } else {
-            this.fallbackCopy(text);
+            // Older browsers â€” try execCommand fallback
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            ta.style.top = '-9999px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                // Success
+            } catch (e) {
+                // Both methods failed â€” show popup
+                this.showCopyPopup(text);
+            }
+            document.body.removeChild(ta);
         }
     },
 
     /**
-     * Fallback copy using textarea
+     * Show a popup with the converted text for manual copy
      */
-    fallbackCopy(text) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.left = '-9999px';
-        ta.style.top = '-9999px';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        try {
-            document.execCommand('copy');
-        } catch (e) {
-            // ignore
-        }
-        document.body.removeChild(ta);
+    showCopyPopup(text) {
+        // Remove any existing popup
+        const existing = document.getElementById('copy-popup');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'copy-popup';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+        const box = document.createElement('div');
+        box.style.cssText = 'background:white;border-radius:16px;padding:24px;max-width:550px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;';
+
+        box.innerHTML = `
+            <h3 style="margin:0 0 8px;font-size:18px;">ðŸ“‹ Your Converted Text</h3>
+            <p style="font-size:12px;color:#64748b;margin:0 0 12px;">Click the text below to select all, then Ctrl+C to copy</p>
+            <div id="copy-popup-text" style="background:#f1f5f9;border:2px dashed #6366f1;border-radius:10px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:14px;word-break:break-all;text-align:left;max-height:200px;overflow-y:auto;cursor:pointer;user-select:all;" onclick="this.focus();document.execCommand('selectAll')">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+            <button id="copy-popup-close" style="margin-top:14px;padding:10px 28px;background:#6366f1;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Close</button>
+        `;
+        box.querySelector('#copy-popup-close').addEventListener('click', () => overlay.remove());
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
     },
 
     /**
