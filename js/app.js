@@ -521,7 +521,7 @@ const App = {
         win.document.write('var y=window.innerHeight;');
         win.document.write('setInterval(function(){');
         win.document.write('  var s=parseInt(slider.value)||3;');
-        win.document.write('  y-=s*0.3;');
+        win.document.write('  y-=s*0.08;');
         win.document.write('  if(y<-el.offsetHeight-300)y=window.innerHeight+300;');
         win.document.write('  el.style.top=y+"px";');
         win.document.write('},50);');
