@@ -31,7 +31,7 @@ const App = {
         if (editorEl) editorEl.placeholder = 'Type in English (Manglish)... e.g., "ente peru" → "എന്റെ പേര്"';
         // Show the Malayalam preview box on load since Manglish starts ON
         const previewBox = document.getElementById('malayalam-preview-box');
-        if (previewBox) previewBox.style.display = '';
+        if (previewBox) previewBox.style.display = 'block';
 
         this.updateCounters();
         this.updateFMLPreview();
@@ -336,7 +336,7 @@ const App = {
                 document.getElementById('editor').placeholder = 'Type in English (Manglish)... e.g., "ente peru" → "എന്റെ പേര്"';
                 // Show the Malayalam preview
                 const up = document.getElementById('unicode-preview');
-                if (up && up.parentElement) (document.getElementById('malayalam-preview-box')||up.parentElement).style.display = '';
+                if (up && up.parentElement) (document.getElementById('malayalam-preview-box')||up.parentElement).style.display = 'block';
             } else {
                 btn.classList.remove('active');
                 btn.textContent = 'Manglish';
@@ -411,7 +411,7 @@ const App = {
         const unicodePreview = document.getElementById('unicode-preview');
         if (unicodePreview) {
             if (this.manglishMode) {
-                unicodePreview.parentElement.style.display = '';
+                unicodePreview.parentElement.style.display = 'block';
                 unicodePreview.textContent = unicodeText || 'Type in Manglish to see Malayalam here...';
             } else {
                 unicodePreview.parentElement.style.display = 'none';
