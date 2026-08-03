@@ -1,23 +1,14 @@
 /**
- * SOUTH VISION M-Translate — Suggestions in Malayalam Preview
- * Shows Google Input Tools candidates as clickable chips inside the preview box.
+ * SOUTH VISION M-Translate — Google-style suggestions dropdown
  */
 (function() {
     var editor = document.getElementById('editor');
-    var previewBox = document.getElementById('malayalam-preview-box');
-    if (!editor || !previewBox) return;
+    if (!editor) return;
 
-    // Create suggestions container inside the preview box
-    var sugContainer = document.createElement('div');
-    sugContainer.id = 'sug-chips';
-    sugContainer.style.cssText = 'margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;';
-    // Insert after the unicode-preview div
-    var unicodePreview = document.getElementById('unicode-preview');
-    if (unicodePreview) {
-        unicodePreview.parentNode.insertBefore(sugContainer, unicodePreview.nextSibling);
-    } else {
-        previewBox.appendChild(sugContainer);
-    }
+    // Create dropdown at body level (avoid overflow clipping)
+    var sugBox = document.createElement('div');
+    sugBox.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:1px solid #dadce0;border-radius:0 0 8px 8px;max-height:220px;overflow-y:auto;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-family:\'Noto Sans Malayalam\',sans-serif;';
+    document.body.appendChild(sugBox);
 
     var sugTimer = null;
     var lastFetched = '';
@@ -27,6 +18,13 @@
         var match = before.match(/([a-zA-Z]+)$/);
         if (!match) return { word: '', start: cursorPos };
         return { word: match[0], start: cursorPos - match[0].length };
+    }
+
+    function positionDropdown() {
+        var rect = editor.getBoundingClientRect();
+        sugBox.style.left = rect.left + 'px';
+        sugBox.style.top = (rect.top + rect.height) + 'px';
+        sugBox.style.width = rect.width + 'px';
     }
 
     function fetchSuggestions(engWord) {
@@ -41,76 +39,79 @@
             try {
                 var resp = JSON.parse(xhr.responseText);
                 if (resp[0] !== 'SUCCESS') return;
-                showChips(resp[1][0][1]);
+                showDropdown(engWord, resp[1][0][1]);
             } catch(e) {}
         };
         xhr.send();
     }
 
-    function showChips(googleCandidates) {
-        // Get current word
-        var text = editor.value;
-        var cw = getCurrentWord(text, editor.selectionStart);
-        if (!cw.word) { sugContainer.innerHTML = ''; return; }
-
-        var ourResult = (typeof Manglish !== 'undefined') ? Manglish.toUnicode(cw.word) : cw.word;
+    function showDropdown(engWord, googleCandidates) {
+        var ourResult = (typeof Manglish !== 'undefined') ? Manglish.toUnicode(engWord) : engWord;
         var items = [];
         var seen = {};
 
-        // Always show our engine result first
-        if (!seen[ourResult]) { seen[ourResult] = true; items.push({ ml: ourResult, label: 'Engine' }); }
-
-        // Add Google candidates
+        // Our engine first, then Google candidates (deduped)
+        if (!seen[ourResult]) { seen[ourResult] = true; items.push(ourResult); }
         for (var i = 0; i < googleCandidates.length; i++) {
-            var gc = googleCandidates[i];
-            if (!seen[gc]) { seen[gc] = true; items.push({ ml: gc, label: 'Google' }); }
+            if (!seen[googleCandidates[i]]) { seen[googleCandidates[i]] = true; items.push(googleCandidates[i]); }
         }
+
+        if (items.length === 0) { sugBox.style.display = 'none'; return; }
 
         var html = '';
         for (var j = 0; j < items.length; j++) {
-            var item = items[j];
-            var bg = item.label === 'Google' ? '#fff7ed' : '#eef2ff';
-            var border = item.label === 'Google' ? '#ea580c' : '#6366f1';
-            var color = item.label === 'Google' ? '#9a3412' : '#3730a3';
-            html += '<span class="sug-chip" data-ml="' + item.ml.replace(/"/g, '&quot;').replace(/&/g, '&amp;').replace(/</g, '&lt;') + '" ' +
-                'style="display:inline-block;padding:4px 10px;background:' + bg + ';border:1.5px solid ' + border + ';border-radius:20px;cursor:pointer;font-size:18px;font-family:\'Noto Sans Malayalam\',sans-serif;color:' + color + ';transition:all 0.15s;" ' +
-                'onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'" ' +
-                '>' + item.ml + '</span>';
+            html += '<div class="sg-item" data-ml="' + items[j].replace(/"/g, '&quot;').replace(/&/g, '&amp;') + '" ' +
+                'style="padding:10px 16px;cursor:pointer;font-size:20px;border-bottom:1px solid #f1f3f4;transition:background 0.1s;" ' +
+                'onmouseover="this.style.background=\'#f1f3f4\'" onmouseout="this.style.background=\'transparent\'">' +
+                items[j] + '</div>';
         }
 
-        sugContainer.innerHTML = html;
+        sugBox.innerHTML = html;
+        positionDropdown();
+        sugBox.style.display = 'block';
 
         // Click handlers
-        var chips = sugContainer.querySelectorAll('.sug-chip');
-        for (var k = 0; k < chips.length; k++) {
-            (function(idx, el) {
-                el.addEventListener('click', function() {
+        var els = sugBox.querySelectorAll('.sg-item');
+        for (var k = 0; k < els.length; k++) {
+            (function(el) {
+                el.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
                     var mlText = this.getAttribute('data-ml');
                     var cursorPos = editor.selectionStart;
-                    var text2 = editor.value;
-                    var cw2 = getCurrentWord(text2, cursorPos);
+                    var text = editor.value;
+                    var cw = getCurrentWord(text, cursorPos);
 
-                    editor.value = text2.substring(0, cw2.start) + mlText + text2.substring(cursorPos);
-                    editor.selectionStart = editor.selectionEnd = cw2.start + mlText.length;
-                    sugContainer.innerHTML = '';
+                    editor.value = text.substring(0, cw.start) + mlText + text.substring(cursorPos);
+                    editor.selectionStart = editor.selectionEnd = cw.start + mlText.length;
+                    sugBox.style.display = 'none';
                     editor.dispatchEvent(new Event('input', { bubbles: true }));
                     editor.focus();
                 });
-            })(k, chips[k]);
+            })(els[k]);
         }
     }
 
-    // Listen for input
+    function hideDropdown() {
+        sugBox.style.display = 'none';
+        lastFetched = '';
+    }
+
+    // Input handler
     editor.addEventListener('input', function() {
         var text = this.value;
         var cw = getCurrentWord(text, this.selectionStart);
-
         if (cw.word.length >= 1 && /[a-zA-Z]/.test(cw.word)) {
             clearTimeout(sugTimer);
-            sugTimer = setTimeout(function() { fetchSuggestions(cw.word); }, 250);
+            sugTimer = setTimeout(function() { fetchSuggestions(cw.word); }, 200);
         } else {
-            sugContainer.innerHTML = '';
-            lastFetched = '';
+            hideDropdown();
         }
     });
+
+    // Blur hides
+    editor.addEventListener('blur', function() { setTimeout(hideDropdown, 200); });
+
+    // Reposition on scroll/resize
+    window.addEventListener('scroll', function() { if (sugBox.style.display === 'block') positionDropdown(); }, true);
+    window.addEventListener('resize', function() { if (sugBox.style.display === 'block') positionDropdown(); });
 })();
