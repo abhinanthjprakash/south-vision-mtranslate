@@ -29,6 +29,8 @@ const App = {
         if (manglishIndicator) manglishIndicator.style.display = 'inline-block';
         const editorEl = document.getElementById('editor');
         if (editorEl) editorEl.placeholder = 'Type in Manglish here... e.g., malayalam, ente, nanni, vanakkam';
+        const cardBadge = document.querySelector('.card-header-badge');
+        if (cardBadge) cardBadge.textContent = 'Type here in Manglish';
 
         this.updateCounters();
         this.updateFMLPreview();
@@ -340,7 +342,10 @@ const App = {
                 btn.classList.add('active');
                 btn.textContent = '✓ Manglish ON';
                 document.getElementById('manglish-indicator').style.display = 'inline-block';
-                document.getElementById('editor').placeholder = 'Type in English (Manglish)... e.g., "ente peru" → "എന്റെ പേര്"';
+                document.getElementById('editor').placeholder = 'Type in Manglish here... e.g., malayalam, ente, nanni, vanakkam';
+                // Update editor card badge
+                const badge = document.querySelector('.card-header-badge');
+                if (badge) badge.textContent = 'Type here in Manglish';
                 // Show the Malayalam preview
                 const up = document.getElementById('unicode-preview');
                 if (up && up.parentElement) (document.getElementById('malayalam-preview-box')||up.parentElement).classList.remove('hidden');
@@ -348,7 +353,10 @@ const App = {
                 btn.classList.remove('active');
                 btn.textContent = 'Manglish';
                 document.getElementById('manglish-indicator').style.display = 'none';
-                document.getElementById('editor').placeholder = 'Type or paste Malayalam text here...';
+                document.getElementById('editor').placeholder = 'ഇവിടെ മലയാളം ടൈപ്പ് ചെയ്യുക...';
+                // Update editor card badge
+                const badge = document.querySelector('.card-header-badge');
+                if (badge) badge.textContent = 'Type here in Malayalam';
                 // Hide the Malayalam preview
                 const up = document.getElementById('unicode-preview');
                 if (up && up.parentElement) (document.getElementById('malayalam-preview-box')||up.parentElement).classList.add('hidden');
