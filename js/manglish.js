@@ -187,7 +187,7 @@ const Manglish = {
         'e': 'എ', 'ae': 'ഏ',
         'ai': 'ഐ',
         'o': 'ഒ', 'oa': 'ഓ',
-        'au': 'ഔ',
+        'au': 'ഔ', 'ow': 'ഔ',
     },
 
     // Vowel sign / matra map (used after a consonant)
@@ -205,7 +205,7 @@ const Manglish = {
         'ai': 'ൈ',
         'o': 'ൊ',
         'oa': 'ോ',
-        'au': 'ൌ',
+        'au': 'ൌ', 'ow': 'ൌ',
         'au_length': 'ൗ',
         'am': 'ം',
         'ah': 'ഃ',
