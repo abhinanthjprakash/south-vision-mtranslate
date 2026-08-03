@@ -1,29 +1,26 @@
 /**
- * SOUTH VISION M-Translate — Suggestions Dropdown
- * Fetches candidates from Google Input Tools API as the user types
- * and shows them in a clickable dropdown below the editor.
+ * SOUTH VISION M-Translate — Suggestions in Malayalam Preview
+ * Shows Google Input Tools candidates as clickable chips inside the preview box.
  */
 (function() {
     var editor = document.getElementById('editor');
-    if (!editor) return;
+    var previewBox = document.getElementById('malayalam-preview-box');
+    if (!editor || !previewBox) return;
 
-    // Create dropdown at body level to avoid overflow:hidden clipping
-    var sugBox = document.createElement('div');
-    sugBox.className = 'sug-dropdown';
-    sugBox.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:2px solid #6366f1;border-top:none;border-radius:0 0 8px 8px;max-height:240px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.12);';
-    sugBox.style.display = 'none';
-    document.body.appendChild(sugBox);
+    // Create suggestions container inside the preview box
+    var sugContainer = document.createElement('div');
+    sugContainer.id = 'sug-chips';
+    sugContainer.style.cssText = 'margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;';
+    // Insert after the unicode-preview div
+    var unicodePreview = document.getElementById('unicode-preview');
+    if (unicodePreview) {
+        unicodePreview.parentNode.insertBefore(sugContainer, unicodePreview.nextSibling);
+    } else {
+        previewBox.appendChild(sugContainer);
+    }
 
     var sugTimer = null;
-    var activeIdx = -1;
-
-    function positionDropdown() {
-        var rect = editor.getBoundingClientRect();
-        sugBox.style.left = rect.left + 'px';
-        sugBox.style.top = (rect.top + rect.height) + 'px';
-        sugBox.style.width = rect.width + 'px';
-        sugBox.style.minWidth = '300px';
-    }
+    var lastFetched = '';
 
     function getCurrentWord(text, cursorPos) {
         var before = text.substring(0, cursorPos);
@@ -33,7 +30,8 @@
     }
 
     function fetchSuggestions(engWord) {
-        if (!engWord || engWord.length < 1) { hideSuggestions(); return; }
+        if (!engWord || engWord.length < 1 || engWord === lastFetched) return;
+        lastFetched = engWord;
 
         var xhr = new XMLHttpRequest();
         xhr.open('GET', 'https://inputtools.google.com/request?text=' +
@@ -43,126 +41,76 @@
             try {
                 var resp = JSON.parse(xhr.responseText);
                 if (resp[0] !== 'SUCCESS') return;
-                var candidates = resp[1][0][1];
-                showSuggestions(engWord, candidates);
-            } catch(e) { hideSuggestions(); }
+                showChips(resp[1][0][1]);
+            } catch(e) {}
         };
-        xhr.onerror = function() { hideSuggestions(); };
         xhr.send();
     }
 
-    function showSuggestions(engWord, googleCandidates) {
-        var ourResult = (typeof Manglish !== 'undefined') ? Manglish.toUnicode(engWord) : engWord;
-        var allItems = [{ ml: ourResult, source: 'local', label: 'Our Engine' }];
+    function showChips(googleCandidates) {
+        // Get current word
+        var text = editor.value;
+        var cw = getCurrentWord(text, editor.selectionStart);
+        if (!cw.word) { sugContainer.innerHTML = ''; return; }
 
+        var ourResult = (typeof Manglish !== 'undefined') ? Manglish.toUnicode(cw.word) : cw.word;
+        var items = [];
+        var seen = {};
+
+        // Always show our engine result first
+        if (!seen[ourResult]) { seen[ourResult] = true; items.push({ ml: ourResult, label: 'Engine' }); }
+
+        // Add Google candidates
         for (var i = 0; i < googleCandidates.length; i++) {
-            if (googleCandidates[i] !== ourResult) {
-                allItems.push({ ml: googleCandidates[i], source: 'google', label: 'Google' });
-            }
+            var gc = googleCandidates[i];
+            if (!seen[gc]) { seen[gc] = true; items.push({ ml: gc, label: 'Google' }); }
         }
-
-        if (allItems.length === 0) { hideSuggestions(); return; }
 
         var html = '';
-        for (var j = 0; j < allItems.length; j++) {
-            var item = allItems[j];
-            html += '<div class="sug-item" data-idx="' + j + '" data-ml="' +
-                item.ml.replace(/"/g, '&quot;').replace(/&/g, '&amp;').replace(/</g, '&lt;') + '">' +
-                '<span class="ml">' + item.ml + '</span>' +
-                '<span class="badge ' + item.source + '">' + item.label + '</span>' +
-                '</div>';
+        for (var j = 0; j < items.length; j++) {
+            var item = items[j];
+            var bg = item.label === 'Google' ? '#fff7ed' : '#eef2ff';
+            var border = item.label === 'Google' ? '#ea580c' : '#6366f1';
+            var color = item.label === 'Google' ? '#9a3412' : '#3730a3';
+            html += '<span class="sug-chip" data-ml="' + item.ml.replace(/"/g, '&quot;').replace(/&/g, '&amp;').replace(/</g, '&lt;') + '" ' +
+                'style="display:inline-block;padding:4px 10px;background:' + bg + ';border:1.5px solid ' + border + ';border-radius:20px;cursor:pointer;font-size:18px;font-family:\'Noto Sans Malayalam\',sans-serif;color:' + color + ';transition:all 0.15s;" ' +
+                'onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'" ' +
+                '>' + item.ml + '</span>';
         }
 
-        sugBox.innerHTML = html;
-        positionDropdown();
-        sugBox.style.display = 'block';
-        activeIdx = -1;
+        sugContainer.innerHTML = html;
 
-        var items = sugBox.querySelectorAll('.sug-item');
-        for (var k = 0; k < items.length; k++) {
+        // Click handlers
+        var chips = sugContainer.querySelectorAll('.sug-chip');
+        for (var k = 0; k < chips.length; k++) {
             (function(idx, el) {
-                el.addEventListener('mousedown', function(e) {
-                    e.preventDefault();
-                    selectSuggestion(idx);
+                el.addEventListener('click', function() {
+                    var mlText = this.getAttribute('data-ml');
+                    var cursorPos = editor.selectionStart;
+                    var text2 = editor.value;
+                    var cw2 = getCurrentWord(text2, cursorPos);
+
+                    editor.value = text2.substring(0, cw2.start) + mlText + text2.substring(cursorPos);
+                    editor.selectionStart = editor.selectionEnd = cw2.start + mlText.length;
+                    sugContainer.innerHTML = '';
+                    editor.dispatchEvent(new Event('input', { bubbles: true }));
+                    editor.focus();
                 });
-            })(k, items[k]);
+            })(k, chips[k]);
         }
     }
 
-    function hideSuggestions() {
-        sugBox.style.display = 'none';
-        sugBox.innerHTML = '';
-        activeIdx = -1;
-    }
-
-    function selectSuggestion(idx) {
-        var items = sugBox.querySelectorAll('.sug-item');
-        if (idx < 0 || idx >= items.length) return;
-        var mlText = items[idx].getAttribute('data-ml');
-
-        var cursorPos = editor.selectionStart;
-        var text = editor.value;
-        var cw = getCurrentWord(text, cursorPos);
-
-        var before = text.substring(0, cw.start);
-        var after = text.substring(cursorPos);
-        editor.value = before + mlText + after;
-
-        var newPos = cw.start + mlText.length;
-        editor.selectionStart = editor.selectionEnd = newPos;
-
-        hideSuggestions();
-        // Trigger input event so Manglish/app counters update
-        editor.dispatchEvent(new Event('input', { bubbles: true }));
-        editor.focus();
-    }
-
-    function updateActive() {
-        var items = sugBox.querySelectorAll('.sug-item');
-        for (var i = 0; i < items.length; i++) {
-            items[i].classList.toggle('active', i === activeIdx);
-        }
-        if (activeIdx >= 0 && items[activeIdx]) {
-            items[activeIdx].scrollIntoView({ block: 'nearest' });
-        }
-    }
-
-    // Listen for input on the editor
+    // Listen for input
     editor.addEventListener('input', function() {
         var text = this.value;
         var cw = getCurrentWord(text, this.selectionStart);
 
-        if (cw.word.length >= 1) {
+        if (cw.word.length >= 1 && /[a-zA-Z]/.test(cw.word)) {
             clearTimeout(sugTimer);
-            sugTimer = setTimeout(function() { fetchSuggestions(cw.word); }, 200);
+            sugTimer = setTimeout(function() { fetchSuggestions(cw.word); }, 250);
         } else {
-            hideSuggestions();
+            sugContainer.innerHTML = '';
+            lastFetched = '';
         }
-    });
-
-    // Keyboard navigation
-    editor.addEventListener('keydown', function(e) {
-        if (sugBox.style.display === 'none') return;
-
-        var items = sugBox.querySelectorAll('.sug-item');
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            activeIdx = Math.min(activeIdx + 1, items.length - 1);
-            updateActive();
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            activeIdx = Math.max(activeIdx - 1, -1);
-            updateActive();
-        } else if (e.key === 'Enter' && activeIdx >= 0) {
-            e.preventDefault();
-            selectSuggestion(activeIdx);
-        } else if (e.key === 'Escape') {
-            hideSuggestions();
-        }
-    });
-
-    // Hide on blur
-    editor.addEventListener('blur', function() {
-        setTimeout(hideSuggestions, 200);
     });
 })();
