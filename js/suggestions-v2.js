@@ -4,12 +4,25 @@
  * and shows them in a clickable dropdown below the editor.
  */
 (function() {
-    var sugBox = document.getElementById('sug-dropdown');
     var editor = document.getElementById('editor');
-    if (!sugBox || !editor) return;
+    if (!editor) return;
+
+    // Create dropdown at body level to avoid overflow:hidden clipping
+    var sugBox = document.createElement('div');
+    sugBox.className = 'sug-dropdown';
+    sugBox.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:2px solid #6366f1;border-top:none;border-radius:0 0 8px 8px;max-height:240px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.12);';
+    document.body.appendChild(sugBox);
 
     var sugTimer = null;
     var activeIdx = -1;
+
+    function positionDropdown() {
+        var rect = editor.getBoundingClientRect();
+        sugBox.style.left = rect.left + 'px';
+        sugBox.style.top = (rect.top + rect.height) + 'px';
+        sugBox.style.width = rect.width + 'px';
+        sugBox.style.minWidth = '300px';
+    }
 
     function getCurrentWord(text, cursorPos) {
         var before = text.substring(0, cursorPos);
@@ -60,6 +73,7 @@
         }
 
         sugBox.innerHTML = html;
+        positionDropdown();
         sugBox.classList.add('show');
         activeIdx = -1;
 
