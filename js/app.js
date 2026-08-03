@@ -356,10 +356,14 @@ const App = {
         }
 
         // Live update teleprompter if open
-        if (this._prompterWindow && !this._prompterWindow.closed) {
-            const text = document.getElementById('editor').value;
-            const display = /[a-zA-Z]/.test(text) ? Manglish.toUnicode(text) : text;
-            this._updatePrompter(display);
+        const pw = this._prompterWindow;
+        if (pw && !pw.closed) {
+            try {
+                const text = document.getElementById('editor').value;
+                const display = /[a-zA-Z]/.test(text) ? Manglish.toUnicode(text) : text;
+                const el = pw.document.getElementById('prompter-text');
+                if (el) el.textContent = display;
+            } catch(e) { this._prompterWindow = null; }
         }
     },
 
@@ -509,16 +513,16 @@ const App = {
         win.document.write('<div class="speed-bar">');
         win.document.write('<button onclick="window.close()">Close</button>');
         win.document.write('<span style="font-size:12px;color:#a8a29e;">Speed:</span>');
-        win.document.write('<input type="range" min="1" max="300" value="50" id="speed-slider" oninput="speedVal=parseInt(this.value)">');
+        win.document.write('<input type="range" min="1" max="300" value="80" id="speed-slider" oninput="speedVal=parseInt(this.value)">');
         win.document.write('</div>');
         win.document.write('<script>');
         win.document.write('var el=document.getElementById("prompter-text");');
         win.document.write('var slider=document.getElementById("speed-slider");');
-        win.document.write('var y=window.innerHeight, lastTime=0, speedVal=50;');
+        win.document.write('var y=window.innerHeight, lastTime=0, speedVal=80;');
         win.document.write('function scroll(now){');
         win.document.write('  if(!lastTime)lastTime=now;');
         win.document.write('  var dt=Math.min(now-lastTime,50);lastTime=now;');
-        win.document.write('  y-=speedVal*0.0003*dt;');
+        win.document.write('  y-=speedVal*0.0001*dt;');
         win.document.write('  if(y<-el.offsetHeight-200)y=window.innerHeight+200;');
         win.document.write('  el.style.transform="translateY("+y+"px)";');
         win.document.write('  requestAnimationFrame(scroll);');
