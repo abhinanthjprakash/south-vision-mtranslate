@@ -11,7 +11,9 @@
     var chips = document.createElement('div');
     chips.id = 'google-chips';
     chips.style.cssText = 'margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;';
-    unicodePreview.parentNode.insertBefore(chips, unicodePreview.nextSibling);
+    // Append to the preview box, not after unicode-preview (in case nextSibling is null)
+    var previewBox = document.getElementById('malayalam-preview-box');
+    (previewBox || unicodePreview.parentNode).appendChild(chips);
 
     var timer = null, lastWord = '';
     var COLORS = ['#eef2ff','#fff7ed','#f0fdf4','#fef2f2','#f5f3ff'];
@@ -109,6 +111,8 @@
     }
 
     editor.addEventListener('input', update);
+    editor.addEventListener('keyup', update);
+    editor.addEventListener('click', function() { lastWord = ''; update(); });
 
     // Show on focus too (in case user clicks into editor)
     editor.addEventListener('focus', function() {
