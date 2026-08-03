@@ -583,6 +583,7 @@ const App = {
     _sugLastWord: '',
     _sugTimer: null,
     _sugChips: null,
+    _sugPending: null, // track pending XHR to cancel
 
     updateSuggestions() {
         if (!this.manglishMode) return;
@@ -604,37 +605,43 @@ const App = {
 
         if (!word || word.length < 1) { this._sugChips.innerHTML = ''; this._sugLastWord = ''; return; }
 
-        // Show our result immediately
-        var our = Manglish.toUnicode(word);
-        this._renderSugChips([our]);
+        // Don't re-render if word hasn't changed (prevents flash)
+        if (word === this._sugLastWord && this._sugChips.innerHTML) return;
 
-        // Fetch Google (debounced)
-        if (word !== this._sugLastWord) {
-            this._sugLastWord = word;
-            var self = this;
-            clearTimeout(this._sugTimer);
-            this._sugTimer = setTimeout(function() { self._fetchGoogleSug(word, our); }, 200);
-        }
-    },
-
-    _fetchGoogleSug(word, ourResult) {
+        this._sugLastWord = word;
         var self = this;
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', 'https://inputtools.google.com/request?text=' + encodeURIComponent(word) + '&itc=ml-t-i0-und&num=5');
-        xhr.onload = function() {
-            if (xhr.status !== 200 || !self.manglishMode) return;
-            try {
-                var r = JSON.parse(xhr.responseText);
-                if (r[0] !== 'SUCCESS') return;
-                var seen = {}; seen[ourResult] = true;
-                var items = [ourResult];
-                for (var i = 0; i < r[1][0][1].length; i++) {
-                    if (!seen[r[1][0][1][i]]) { seen[r[1][0][1][i]] = true; items.push(r[1][0][1][i]); }
-                }
-                self._renderSugChips(items);
-            } catch(e) {}
-        };
-        xhr.send();
+
+        // Cancel pending request
+        if (this._sugPending) { this._sugPending.abort(); this._sugPending = null; }
+
+        // Fetch Google (with debounce)
+        clearTimeout(this._sugTimer);
+        this._sugTimer = setTimeout(function() {
+            if (!self.manglishMode || word !== self._sugLastWord) return;
+            var xhr = new XMLHttpRequest();
+            self._sugPending = xhr;
+            xhr.open('GET', 'https://inputtools.google.com/request?text=' + encodeURIComponent(word) + '&itc=ml-t-i0-und&num=5');
+            xhr.onload = function() {
+                self._sugPending = null;
+                if (xhr.status !== 200 || !self.manglishMode || word !== self._sugLastWord) return;
+                try {
+                    var r = JSON.parse(xhr.responseText);
+                    if (r[0] !== 'SUCCESS') return;
+                    var our = Manglish.toUnicode(word);
+                    var seen = {};
+                    var items = [];
+                    if (!seen[our]) { seen[our] = true; items.push(our); }
+                    for (var i = 0; i < r[1][0][1].length; i++) {
+                        var gc = r[1][0][1][i];
+                        if (!seen[gc]) { seen[gc] = true; items.push(gc); }
+                    }
+                    // Don't render if word changed during fetch
+                    if (word === self._sugLastWord) self._renderSugChips(items);
+                } catch(e) {}
+            };
+            xhr.onerror = function() { self._sugPending = null; };
+            xhr.send();
+        }, 250);
     },
 
     _renderSugChips(items) {
