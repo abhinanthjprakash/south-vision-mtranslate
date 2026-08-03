@@ -520,12 +520,9 @@ const App = {
         win.document.write('    if(converted!==lastText){');
         win.document.write('      lastText=converted;');
         win.document.write('      prompterEl.textContent=converted;');
-        win.document.write('      prompterEl.classList.remove("scroll");');
-        win.document.write('      void prompterEl.offsetWidth;');
-        win.document.write('      prompterEl.classList.add("scroll");');
         win.document.write('    }');
         win.document.write('  }catch(e){}');
-        win.document.write('},2000);');
+        win.document.write('},1000);');
         win.document.write('</script>');
         win.document.write('</body></html>');
         win.document.close();
