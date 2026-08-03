@@ -4,7 +4,7 @@
  */
 
 const App = {
-    manglishMode: true,
+    manglishMode: false,
     fileName: 'untitled.txt',
     undoStack: [],
     maxUndo: 50,
@@ -19,31 +19,10 @@ const App = {
         this.bindToolbar();
         this.bindKeyboardLayoutSelector();
         this.bindManglishToggle();
-        // Manglish ON by default — set initial button/indicator state
-        const manglishBtn = document.getElementById('btn-manglish');
-        if (manglishBtn) {
-            manglishBtn.classList.add('active');
-            manglishBtn.textContent = '✓ Manglish ON';
-        }
-        const manglishIndicator = document.getElementById('manglish-indicator');
-        if (manglishIndicator) manglishIndicator.style.display = 'inline-block';
-        const editorEl = document.getElementById('editor');
-        if (editorEl) editorEl.placeholder = 'Type in Manglish here... e.g., malayalam, ente, nanni, vanakkam';
-        const cardBadge = document.querySelector('.card-header-badge');
-        if (cardBadge) cardBadge.textContent = 'Type here in Manglish';
+        // Manglish starts OFF — user must click to enable
 
         this.updateCounters();
         this.updateFMLPreview();
-
-        // Show the Malayalam preview box on load since Manglish starts ON.
-        // Use setTimeout to ensure this runs after all DOM/layout updates.
-        setTimeout(() => {
-            const previewBox = document.getElementById('malayalam-preview-box');
-            if (previewBox) {
-                previewBox.classList.remove('hidden');
-                previewBox.style.display = 'block';
-            }
-        }, 100);
 
         // Editor input handler
         const editor = document.getElementById('editor');
