@@ -494,7 +494,7 @@ const App = {
         win.document.write('<style>');
         win.document.write('*{margin:0;padding:0;box-sizing:border-box;}');
         win.document.write('body{background:#1c1917;color:#f5f5f4;font-family:"Noto Sans Malayalam",sans-serif;overflow:hidden;}');
-        win.document.write('.prompter{font-size:48px;line-height:1.8;padding:60px 60px 100px 60px;white-space:pre-wrap;position:absolute;top:100%;left:0;right:0;}');
+        win.document.write('.prompter{font-size:48px;line-height:1.8;padding:60px 60px 100px 60px;white-space:pre-wrap;will-change:transform;}');
         win.document.write('.speed-bar{position:fixed;bottom:0;left:0;right:0;background:#44403c;padding:10px 20px;display:flex;align-items:center;gap:15px;z-index:10;}');
         win.document.write('.speed-bar button{background:#d97706;border:none;color:white;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;}');
         win.document.write('.speed-bar input{flex:1;}');
@@ -503,22 +503,26 @@ const App = {
         win.document.write('<div class="speed-bar">');
         win.document.write('<button onclick="window.close()">Close</button>');
         win.document.write('<span style="font-size:12px;color:#a8a29e;">Speed:</span>');
-        win.document.write('<input type="range" min="1" max="20" value="5" id="speed-slider">');
+        win.document.write('<input type="range" min="1" max="30" value="8" id="speed-slider">');
         win.document.write('</div>');
-        // JS-driven smooth scroll + live text updates
+        // Smooth GPU-accelerated scroll + live updates
         win.document.write('<script>');
         win.document.write('var el=document.getElementById("prompter-text");');
         win.document.write('var slider=document.getElementById("speed-slider");');
         win.document.write('var lastText=el.textContent;');
-        win.document.write('var topPos=100;'); // start at 100% (bottom of screen)
-        win.document.write('function step(){');
-        win.document.write('  var speed=parseInt(slider.value)||5;');
-        win.document.write('  topPos-=speed*0.02;');
-        win.document.write('  el.style.top=topPos+"%";');
-        win.document.write('  if(topPos<-200) topPos=100;');
-        win.document.write('  requestAnimationFrame(step);');
+        win.document.write('var y=window.innerHeight;');
+        win.document.write('var lastTime=0;');
+        win.document.write('function scroll(now){');
+        win.document.write('  if(!lastTime)lastTime=now;');
+        win.document.write('  var dt=Math.min(now-lastTime,50);');
+        win.document.write('  lastTime=now;');
+        win.document.write('  var speed=(parseInt(slider.value)||8)*0.03;');
+        win.document.write('  y-=speed*dt;');
+        win.document.write('  if(y<-el.offsetHeight-200)y=window.innerHeight+200;');
+        win.document.write('  el.style.transform="translateY("+y+"px)";');
+        win.document.write('  requestAnimationFrame(scroll);');
         win.document.write('}');
-        win.document.write('requestAnimationFrame(step);');
+        win.document.write('requestAnimationFrame(scroll);');
         win.document.write('setInterval(function(){');
         win.document.write('  try{');
         win.document.write('    var ed=window.opener.document.getElementById("editor");');
