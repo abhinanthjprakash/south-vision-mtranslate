@@ -450,7 +450,9 @@ const Manglish = {
         // Handle word-final consonant — add chandrakkala only if the last
         // consonant wasn't followed by a vowel (inherent or explicit).
         // Skip during real-time typing (final=false).
+        // Skip for single-char results (user just typed one letter).
         if (final && endsWithBareConsonant && result.length > 0 &&
+            result.length > 1 &&
             this._isConsonant(result[result.length - 1])) {
             result += '്';
         }

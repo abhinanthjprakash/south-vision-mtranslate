@@ -411,7 +411,7 @@ const App = {
         let unicodeText = text;
         // Auto-convert if text has English (Manglish) letters AND Manglish mode is ON
         if (this.manglishMode && /[a-zA-Z]/.test(text)) {
-            unicodeText = Manglish.toUnicode(text, { final: false });
+            unicodeText = Manglish.toUnicode(text);
         }
 
         // Update the Malayalam preview — only visible when Manglish is ON
