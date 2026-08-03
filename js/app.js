@@ -494,18 +494,40 @@ const App = {
         win.document.write('<style>');
         win.document.write('*{margin:0;padding:0;box-sizing:border-box;}');
         win.document.write('body{background:#1c1917;color:#f5f5f4;font-family:"Noto Sans Malayalam",sans-serif;overflow:hidden;}');
-        win.document.write('.prompter{font-size:48px;line-height:1.8;padding:60px;white-space:pre-wrap;animation:scroll 90s linear infinite;}');
+        win.document.write('.prompter{font-size:48px;line-height:1.8;padding:60px;white-space:pre-wrap;}');
+        win.document.write('.prompter.scroll{animation:scroll 40s linear infinite;}');
         win.document.write('@keyframes scroll{0%{transform:translateY(100vh);}100%{transform:translateY(-100%);}}');
-        win.document.write('.speed-bar{position:fixed;bottom:0;left:0;right:0;background:#44403c;padding:10px 20px;display:flex;align-items:center;gap:15px;}');
+        win.document.write('.speed-bar{position:fixed;bottom:0;left:0;right:0;background:#44403c;padding:10px 20px;display:flex;align-items:center;gap:15px;z-index:10;}');
         win.document.write('.speed-bar button{background:#d97706;border:none;color:white;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;}');
         win.document.write('.speed-bar input{flex:1;}');
         win.document.write('</style></head><body>');
-        win.document.write('<div class="prompter" id="prompter-text">' + displayText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>');
+        win.document.write('<div class="prompter scroll" id="prompter-text">' + displayText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>');
         win.document.write('<div class="speed-bar">');
         win.document.write('<button onclick="window.close()">Close</button>');
         win.document.write('<span style="font-size:12px;color:#a8a29e;">Speed:</span>');
-        win.document.write('<input type="range" min="20" max="200" value="90" oninput="document.getElementById(\'prompter-text\').style.animationDuration=this.value+\'s\'">');
-        win.document.write('</div></body></html>');
+        win.document.write('<input type="range" min="10" max="150" value="40" oninput="document.getElementById(\'prompter-text\').style.animationDuration=this.value+\'s\'">');
+        win.document.write('</div>');
+        // Live update: poll opener editor every 2 seconds for new text
+        win.document.write('<script>');
+        win.document.write('var prompterEl=document.getElementById("prompter-text");');
+        win.document.write('var lastText="' + displayText.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '";');
+        win.document.write('setInterval(function(){');
+        win.document.write('  try {');
+        win.document.write('    var ed=window.opener.document.getElementById("editor");');
+        win.document.write('    if(!ed) return;');
+        win.document.write('    var raw=ed.value;');
+        win.document.write('    var converted=/[a-zA-Z]/.test(raw)?window.opener.Manglish.toUnicode(raw):raw;');
+        win.document.write('    if(converted!==lastText){');
+        win.document.write('      lastText=converted;');
+        win.document.write('      prompterEl.textContent=converted;');
+        win.document.write('      prompterEl.classList.remove("scroll");');
+        win.document.write('      void prompterEl.offsetWidth;');
+        win.document.write('      prompterEl.classList.add("scroll");');
+        win.document.write('    }');
+        win.document.write('  }catch(e){}');
+        win.document.write('},2000);');
+        win.document.write('</script>');
+        win.document.write('</body></html>');
         win.document.close();
     },
 
