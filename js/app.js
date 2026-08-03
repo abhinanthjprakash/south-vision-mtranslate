@@ -487,22 +487,24 @@ const App = {
      * Open teleprompter window
      */
     openTeleprompter(text) {
+        // Auto-convert Manglish to Malayalam if text has English letters
+        const displayText = /[a-zA-Z]/.test(text) ? Manglish.toUnicode(text) : text;
         const win = window.open('', 'teleprompter', 'width=900,height=500');
         win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Tele Prompter</title>');
         win.document.write('<style>');
         win.document.write('*{margin:0;padding:0;box-sizing:border-box;}');
         win.document.write('body{background:#1c1917;color:#f5f5f4;font-family:"Noto Sans Malayalam",sans-serif;overflow:hidden;}');
-        win.document.write('.prompter{font-size:48px;line-height:1.8;padding:60px;white-space:pre-wrap;animation:scroll 120s linear infinite;}');
+        win.document.write('.prompter{font-size:48px;line-height:1.8;padding:60px;white-space:pre-wrap;animation:scroll 90s linear infinite;}');
         win.document.write('@keyframes scroll{0%{transform:translateY(100vh);}100%{transform:translateY(-100%);}}');
         win.document.write('.speed-bar{position:fixed;bottom:0;left:0;right:0;background:#44403c;padding:10px 20px;display:flex;align-items:center;gap:15px;}');
         win.document.write('.speed-bar button{background:#d97706;border:none;color:white;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;}');
         win.document.write('.speed-bar input{flex:1;}');
         win.document.write('</style></head><body>');
-        win.document.write('<div class="prompter" id="prompter-text">' + text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>');
+        win.document.write('<div class="prompter" id="prompter-text">' + displayText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>');
         win.document.write('<div class="speed-bar">');
         win.document.write('<button onclick="window.close()">Close</button>');
         win.document.write('<span style="font-size:12px;color:#a8a29e;">Speed:</span>');
-        win.document.write('<input type="range" min="30" max="300" value="120" oninput="document.getElementById(\'prompter-text\').style.animationDuration=this.value+\'s\'">');
+        win.document.write('<input type="range" min="20" max="200" value="90" oninput="document.getElementById(\'prompter-text\').style.animationDuration=this.value+\'s\'">');
         win.document.write('</div></body></html>');
         win.document.close();
     },
