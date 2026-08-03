@@ -31,7 +31,11 @@ const App = {
         if (editorEl) editorEl.placeholder = 'Type in English (Manglish)... e.g., "ente peru" → "എന്റെ പേര്"';
         // Show the Malayalam preview box on load since Manglish starts ON
         const previewBox = document.getElementById('malayalam-preview-box');
-        if (previewBox) previewBox.classList.remove('hidden');
+        if (previewBox) {
+            previewBox.classList.remove('hidden');
+            // Also set directly to be absolutely sure
+            previewBox.setAttribute('style', 'background:#fefce8;border:2px dashed #eab308;border-radius:8px;');
+        }
 
         this.updateCounters();
         this.updateFMLPreview();
