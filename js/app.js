@@ -671,8 +671,8 @@ const App = {
                 var m2 = before.match(/([a-zA-Z]+)$/);
                 if (!m2) return;
                 var start = before.length - m2[0].length;
-                editor.value = text.substring(0, start) + ml + text.substring(editor.selectionStart);
-                editor.selectionStart = editor.selectionEnd = start + ml.length;
+                editor.value = text.substring(0, start) + ml + ' ' + text.substring(editor.selectionStart);
+                editor.selectionStart = editor.selectionEnd = start + ml.length + 1;
                 self._sugChips.innerHTML = '';
                 self._sugLastWord = '';
                 editor.dispatchEvent(new Event('input', { bubbles: true }));
