@@ -1,5 +1,5 @@
 /**
- * SOUTH VISION M-Translate (FML-CONVERTER) — Main Application
+ * SOUTH VISION M-Translate (FML-CONVERTER) â€” Main Application
  * UI event handlers, toolbar actions, state management
  */
 
@@ -206,7 +206,7 @@ const App = {
         document.getElementById('toolbar-wordcheck').addEventListener('click', () => {
             const editor = document.getElementById('editor');
             const words = editor.value.trim().split(/\s+/).filter(w => w.length > 0);
-            const malayalamWords = words.filter(w => /[ഀ-ൿ]/.test(w));
+            const malayalamWords = words.filter(w => /[à´€-àµ¿]/.test(w));
             const englishWords = words.filter(w => /^[a-zA-Z]+$/.test(w));
 
             const msg = `Word count: ${words.length}\nMalayalam: ${malayalamWords.length}\nEnglish/Latin: ${englishWords.length}\nMixed/Other: ${words.length - malayalamWords.length - englishWords.length}`;
@@ -262,9 +262,9 @@ const App = {
 
         function updateKbToggleText() {
             if (kbContainer.style.display === 'block') {
-                toggleBtn.textContent = '👆 Hide Keyboard';
+                toggleBtn.textContent = 'ðŸ‘† Hide Keyboard';
             } else {
-                toggleBtn.textContent = '👆 Show Keyboard';
+                toggleBtn.textContent = 'ðŸ‘† Show Keyboard';
             }
         }
 
@@ -290,9 +290,9 @@ const App = {
             this.manglishMode = !this.manglishMode;
             if (this.manglishMode) {
                 btn.classList.add('active');
-                btn.textContent = '✓ Manglish ON';
+                btn.textContent = 'âœ“ Manglish ON';
                 document.getElementById('manglish-indicator').style.display = 'inline-block';
-                document.getElementById('editor').placeholder = 'Type in English (Manglish)... e.g., "ente peru" → "എന്റെ പേര്"';
+                document.getElementById('editor').placeholder = 'Type in English (Manglish)... e.g., "ente peru" â†’ "à´Žà´¨àµà´±àµ† à´ªàµ‡à´°àµ"';
             } else {
                 btn.classList.remove('active');
                 btn.textContent = 'Manglish';
@@ -346,7 +346,7 @@ const App = {
 
         if (word.length >= 1 && /[a-zA-Z]/.test(word)) {
             const converted = Manglish.toUnicode(word);
-            if (converted !== word && /[ഀ-ൿ]/.test(converted)) {
+            if (converted !== word && /[à´€-àµ¿]/.test(converted)) {
                 const newText = prefix + converted + after;
                 const newPos = prefix.length + converted.length;
                 editor.value = newText;
@@ -641,7 +641,7 @@ const App = {
             const voiceText = document.getElementById('voice-text');
             if (voiceText) voiceText.textContent = 'Listening...';
 
-            this.showToast('🎤 Voice typing ON — Speak Malayalam...', 'success');
+            this.showToast('ðŸŽ¤ Voice typing ON â€” Speak Malayalam...', 'success');
         } catch (e) {
             console.error('Voice start error:', e);
             this.showToast('Could not start voice. Allow microphone access.', 'error');
