@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR — SOUTH VISION M-Translate (FML-CONVERTER)</title>
+    <style>
+        :root {
+            --bg: #fafaf9;
+            --primary: #d97706;
+            --text: #292524;
+            --border: #e7e5e4;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #fafaf9 0%, #fef3c7 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: #1c1917;
+            color: white;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header a {
+            color: #d97706;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .header h1 { font-size: 18px; flex: 1; }
+        .container {
+            max-width: 900px;
+            margin: 24px auto;
+            padding: 24px;
+            width: 100%;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        .drop-zone {
+            border: 3px dashed #d6d3d1;
+            border-radius: 12px;
+            padding: 60px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafaf9;
+        }
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: var(--primary);
+            background: #fef3c7;
+        }
+        .drop-zone p { color: #78716c; margin-top: 8px; }
+        .drop-zone .icon { font-size: 48px; }
+        #file-input { display: none; }
+        #output {
+            width: 100%;
+            min-height: 200px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Noto Sans Malayalam', sans-serif;
+            font-size: 18px;
+            line-height: 2;
+            resize: vertical;
+            margin-top: 12px;
+        }
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+        .btn-primary { background: #d97706; color: white; }
+        .btn-primary:hover { background: #b45309; }
+        .btn-outline { background: white; color: #d97706; border: 1px solid #d97706; }
+        .btn-outline:hover { background: #fef3c7; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .buttons { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .status { color: #78716c; font-size: 13px; margin-top: 8px; }
+        .progress {
+            width: 100%;
+            height: 6px;
+            background: #e7e5e4;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+        .preview-img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: none;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📷 OCR — Extract Malayalam Text from Images/PDF</h1>
+        <a href="index.html">← Back to Converter</a>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h3 style="margin-bottom:12px;">Upload Image or PDF</h3>
+            <div class="drop-zone" id="drop-zone">
+                <div class="icon">📤</div>
+                <p><strong>Drop an image or PDF here</strong><br>
+                <small style="color:#a8a29e;">or click to browse. Supports JPG, PNG, PDF</small></p>
+            </div>
+            <input type="file" id="file-input" accept="image/*,.pdf">
+            <img id="preview-img" class="preview-img" alt="Preview">
+            <div class="progress" id="progress"><div class="progress-bar" id="progress-bar"></div></div>
+            <div class="status" id="status"></div>
+            <textarea id="output" placeholder="Extracted Malayalam text will appear here..."></textarea>
+            <div class="buttons">
+                <button class="btn btn-primary" id="btn-copy">📋 Copy to Editor</button>
+                <button class="btn btn-primary" id="btn-copy-fml">📋 Copy as FML</button>
+                <button class="btn btn-outline" id="btn-clear">🗑️ Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tesseract.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const previewImg = document.getElementById('preview-img');
+        const output = document.getElementById('output');
+        const status = document.getElementById('status');
+        const progress = document.getElementById('progress');
+        const progressBar = document.getElementById('progress-bar');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        function handleFile(file) {
+            if (!file) return;
+            status.textContent = 'Processing: ' + file.name;
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                    runOCR(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+                status.textContent = 'PDF OCR not yet supported in browser. Please convert to image first.';
+            } else {
+                status.textContent = 'Unsupported file type. Please use JPG, PNG, or PDF.';
+            }
+        }
+
+        function runOCR(imageData) {
+            status.textContent = 'Running OCR... This may take a moment.';
+            progress.style.display = 'block';
+            progressBar.style.width = '0%';
+
+            Tesseract.recognize(imageData, 'mal', {
+                logger: (m) => {
+                    if (m.status === 'recognizing text') {
+                        const pct = Math.round(m.progress * 100);
+                        progressBar.style.width = pct + '%';
+                        status.textContent = 'Recognizing text... ' + pct + '%';
+                    }
+                }
+            }).then(({ data: { text } }) => {
+                output.value = text.trim();
+                status.textContent = 'OCR complete! ' + text.length + ' characters extracted.';
+                progress.style.display = 'none';
+            }).catch((err) => {
+                status.textContent = 'OCR failed: ' + err.message;
+                progress.style.display = 'none';
+            });
+        }
+
+        document.getElementById('btn-copy').addEventListener('click', () => {
+            if (!output.value) return alert('Nothing to copy!');
+            const parent = window.opener;
+            if (parent && parent.document) {
+                parent.document.getElementById('editor').value = output.value;
+                parent.document.getElementById('editor').dispatchEvent(new Event('input'));
+                window.close();
+            } else {
+                navigator.clipboard.writeText(output.value);
+                alert('Copied to clipboard! Paste it in the converter.');
+            }
+        });
+
+        document.getElementById('btn-copy-fml').addEventListener('click', () => {
+            if (!output.value) return alert('Nothing to copy!');
+            // Use the parent window's converter if available
+            const parent = window.opener;
+            if (parent && parent.Converter) {
+                const fml = parent.Converter.unicodeToFML(output.value);
+                navigator.clipboard.writeText(fml);
+                alert('FML text copied to clipboard!');
+            } else {
+                alert('Please open this from the main converter page.');
+            }
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            output.value = '';
+            previewImg.style.display = 'none';
+            status.textContent = '';
+            progress.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

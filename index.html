@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SOUTH VISION M-Translate (FML-CONVERTER) — Convert Unicode Malayalam to FML/ML encoding for Photoshop, Illustrator, and design software.">
+    <meta name="author" content="South Vision">
+    <title>SOUTH VISION M-Translate (FML-CONVERTER)</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Manjari:wght@400;700&family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="img/logo-small.png">
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="header-brand">
+            <img class="header-logo" src="img/logo.png" alt="South Vision Logo" title="SOUTH VISION">
+            <div>
+                <div class="header-title">SOUTH VISION M-Translate <span>FML-CONVERTER</span></div>
+                <div class="header-subtitle">Type Malayalam → Get FML/ML Font Encoding</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <span id="manglish-indicator" class="badge badge-success">⚡ Manglish ON</span>
+            <span id="voice-badge" class="badge badge-voice">🎤 Recording...</span>
+        </div>
+    </header>
+
+    <!-- ===== TOOLBAR ===== -->
+    <div class="toolbar">
+        <div class="toolbar-group">
+            <button class="toolbar-btn has-label" id="toolbar-new" title="New File">
+                <span class="tb-icon">📄</span> <span class="label-text">New</span>
+            </button>
+            <button class="toolbar-btn has-label" id="toolbar-open" title="Open File">
+                <span class="tb-icon">📂</span> <span class="label-text">Open</span>
+            </button>
+            <button class="toolbar-btn has-label" id="toolbar-download" title="Download Text">
+                <span class="tb-icon">💾</span> <span class="label-text">Save</span>
+            </button>
+            <button class="toolbar-btn has-label" id="toolbar-print" title="Print">
+                <span class="tb-icon">🖨️</span> <span class="label-text">Print</span>
+            </button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+            <button class="toolbar-btn has-label primary-btn" id="toolbar-voice" title="Voice Typing — Speak Malayalam">
+                <span class="tb-icon">🎤</span> <span class="label-text">Voice</span>
+            </button>
+            <button class="toolbar-btn has-label" id="btn-charmap" title="Character Map">
+                <span class="tb-icon">🔣</span> <span class="label-text">Char Map</span>
+            </button>
+            <button class="toolbar-btn has-label" id="toolbar-google-keyboard" title="Google Malayalam Keyboard">
+                <span class="tb-icon">⌨️</span> <span class="label-text">Keyboard</span>
+            </button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+            <button class="toolbar-btn has-label" id="toolbar-wordcheck" title="Word Count">
+                <span class="tb-icon">✅</span> <span class="label-text">Count</span>
+            </button>
+            <button class="toolbar-btn has-label" id="toolbar-teleprompter" title="Tele Prompter">
+                <span class="tb-icon">📺</span> <span class="label-text">Prompter</span>
+            </button>
+            <button class="toolbar-btn has-label" id="toolbar-ocr" title="Extract Text from Image">
+                <span class="tb-icon">📷</span> <span class="label-text">OCR</span>
+            </button>
+            <button class="toolbar-btn has-label" id="toolbar-mail" title="Email Text">
+                <span class="tb-icon">📧</span> <span class="label-text">Email</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== VOICE INDICATOR ===== -->
+    <div id="voice-indicator" class="voice-indicator">
+        <span class="voice-dot"></span>
+        <span id="voice-text" class="voice-text">Listening... Speak in Malayalam</span>
+    </div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+
+        <!-- Step Guide -->
+        <div class="steps">
+            <div class="step"><span class="step-num">1</span> Type Malayalam</div>
+            <div class="step"><span class="step-num">2</span> Click Convert</div>
+            <div class="step"><span class="step-num">3</span> Copy & Paste</div>
+        </div>
+
+        <!-- Conversion Bar -->
+        <div class="conversion-bar">
+            <img src="img/logo.png" alt="">
+            <span class="conversion-label">Convert:</span>
+            <button class="btn btn-lg btn-primary" id="btn-copy-fml">
+                📋 Copy as FML <small style="opacity:0.8;font-weight:400;">(Photoshop / Illustrator)</small>
+            </button>
+            <button class="btn btn-lg btn-outline" id="btn-copy-ml">
+                📋 Copy as ML <small style="opacity:0.7;font-weight:400;">(Legacy Fonts)</small>
+            </button>
+            <button class="btn btn-lg btn-dark" id="btn-paste-mlfml">
+                📥 Paste ML/FML → Unicode
+            </button>
+            <button class="btn btn-lg btn-outline" id="btn-manglish">
+                ✏️ Manglish Typing
+            </button>
+            <button class="btn btn-lg btn-outline" id="btn-clear">
+                🗑️ Clear All
+            </button>
+        </div>
+
+        <!-- Editor + Preview -->
+        <div class="editor-section">
+
+            <!-- Left: Editor -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-header-title">
+                        <img src="img/logo.png" alt=""> Malayalam Editor
+                    </div>
+                    <span class="card-header-badge">Type here in Malayalam</span>
+                </div>
+                <div class="card-body">
+                    <textarea id="editor" placeholder="ഇവിടെ മലയാളം ടൈപ്പ് ചെയ്യുക...
+Type Malayalam here...
+Or use Manglish mode to type in English!
+
+Example: 'ente peru' → 'എന്റെ പേര്'"></textarea>
+                </div>
+            </div>
+
+            <!-- Right: Preview -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-header-title">
+                        <img src="img/logo.png" alt=""> Conversion Output
+                    </div>
+                    <span class="card-header-badge">Result</span>
+                </div>
+                <div class="preview-content">
+                    <div class="preview-item">
+                        <h4>🔤 FML Output <span class="tag">For Photoshop</span></h4>
+                        <code id="fml-preview">FML encoded text will appear here...</code>
+                        <div class="preview-note">① Click "Copy as FML" above &nbsp; ② Paste into Photoshop with FML font</div>
+                    </div>
+                    <div class="preview-item">
+                        <h4>📝 ML Output <span class="tag">Legacy Format</span></h4>
+                        <code id="ml-preview">ML encoded text will appear here...</code>
+                        <div class="preview-note">① Click "Copy as ML" above &nbsp; ② Paste with ML-TT font</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Keyboard -->
+        <div class="panel-section" id="keyboard-panel">
+            <div class="panel-header-bar" id="kb-header-bar">
+                <div class="panel-header-left">
+                    <span class="panel-header-title">🎹 On-Screen Keyboard</span>
+                    <div class="layout-pills">
+                        <label class="layout-pill"><input type="radio" name="kb-layout" value="inscript" checked> Inscript</label>
+                        <label class="layout-pill"><input type="radio" name="kb-layout" value="gist"> GIST</label>
+                        <label class="layout-pill"><input type="radio" name="kb-layout" value="typewriter"> Typewriter</label>
+                        <label class="layout-pill"><input type="radio" name="kb-layout" value="panchari"> Panchari</label>
+                        <label class="layout-pill"><input type="radio" name="kb-layout" value="varityper"> Varityper</label>
+                        <label class="layout-pill"><input type="radio" name="kb-layout" value="english"> English</label>
+                    </div>
+                </div>
+                <button class="toggle-link" id="btn-toggle-keyboard">👆 Show Keyboard</button>
+            </div>
+            <div id="keyboard-container"></div>
+        </div>
+
+
+    </div>
+
+    <!-- ===== STATUS BAR ===== -->
+    <div class="status-bar">
+        <div class="status-group">
+            <div class="status-item">📝 Words: <span class="status-value" id="word-count">0</span></div>
+            <div class="status-item">🔤 Characters: <span class="status-value" id="char-count">0</span></div>
+        </div>
+        <div class="status-shortcuts">Shortcuts: Ctrl+S Save | Ctrl+N New | Ctrl+P Print | Ctrl+M Voice | Ctrl+Z Undo</div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <div class="footer">
+        <strong>SOUTH VISION M-Translate (FML-CONVERTER)</strong> —
+        Free Malayalam FML/ML Converter for Designers |
+        <a href="#" onclick="alert('SOUTH VISION M-Translate (FML-CONVERTER) v3.0\n\nModern student-friendly Malayalam FML converter.\n\n1. TYPE Malayalam text\n2. CLICK Copy as FML or Copy as ML\n3. PASTE into Photoshop / Illustrator with FML font\n\nAll FML fonts supported: FML-Sruthy, FML-Mohini, FML-Revathi, etc.');return false;">How to Use</a> |
+        <a href="https://www.saikatham.com/download-malayalam-fml-fonts-free/" target="_blank">Download FML Fonts</a>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="js/mappings.js"></script>
+    <script src="js/converter.js"></script>
+    <script src="js/manglish.js"></script>
+    <script src="js/keyboard.js"></script>
+    <script src="js/charmap.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

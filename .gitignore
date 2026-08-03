@@ -1,0 +1,18 @@
+# Node modules (if any)
+node_modules/
+
+# Temporary files
+*.tmp
+_fetched_*
+temp_*
+
+# Optimization scripts (not needed for deployment)
+optimize_logo.js
+
+# System files
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Original large GIF (keep optimized PNGs for deployment)
+img/logo.gif
