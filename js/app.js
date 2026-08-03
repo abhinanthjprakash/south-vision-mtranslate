@@ -518,7 +518,7 @@ const App = {
         win.document.write('function scroll(now){');
         win.document.write('  if(!lastTime)lastTime=now;');
         win.document.write('  var dt=Math.min(now-lastTime,50);lastTime=now;');
-        win.document.write('  y-=speedVal*0.015*dt;');
+        win.document.write('  y-=speedVal*0.005*dt;');
         win.document.write('  if(y<-el.offsetHeight-200)y=window.innerHeight+200;');
         win.document.write('  el.style.transform="translateY("+y+"px)";');
         win.document.write('  requestAnimationFrame(scroll);');
