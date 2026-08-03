@@ -10,7 +10,8 @@
     // Create dropdown at body level to avoid overflow:hidden clipping
     var sugBox = document.createElement('div');
     sugBox.className = 'sug-dropdown';
-    sugBox.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:2px solid #6366f1;border-top:none;border-radius:0 0 8px 8px;max-height:240px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.12);';
+    sugBox.style.cssText = 'position:fixed;z-index:9999;background:#fff;border:2px solid #6366f1;border-top:none;border-radius:0 0 8px 8px;max-height:240px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.12);';
+    sugBox.style.display = 'none';
     document.body.appendChild(sugBox);
 
     var sugTimer = null;
@@ -74,7 +75,7 @@
 
         sugBox.innerHTML = html;
         positionDropdown();
-        sugBox.classList.add('show');
+        sugBox.style.display = 'block';
         activeIdx = -1;
 
         var items = sugBox.querySelectorAll('.sug-item');
@@ -89,7 +90,7 @@
     }
 
     function hideSuggestions() {
-        sugBox.classList.remove('show');
+        sugBox.style.display = 'none';
         sugBox.innerHTML = '';
         activeIdx = -1;
     }
@@ -141,7 +142,7 @@
 
     // Keyboard navigation
     editor.addEventListener('keydown', function(e) {
-        if (!sugBox.classList.contains('show')) return;
+        if (sugBox.style.display === 'none') return;
 
         var items = sugBox.querySelectorAll('.sug-item');
         if (e.key === 'ArrowDown') {

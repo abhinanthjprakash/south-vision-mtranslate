@@ -26,7 +26,7 @@ const Manglish = {
         'manushyan': 'മനുഷ്യൻ',
         'manushyar': 'മനുഷ്യർ',
         'marichu': 'മരിച്ചു',
-        'hello': 'ഹലോ',
+        'hello': 'ഹലോ', 'are': 'ആർ', 'you': 'യു',
         // Common consonant-cluster words
         'buddhi': 'ബുദ്ധി',
         'yuddham': 'യുദ്ധം',
