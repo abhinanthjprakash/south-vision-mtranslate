@@ -420,6 +420,8 @@ const App = {
             if (this.manglishMode) {
                 unicodePreview.parentElement.classList.remove('hidden');
                 unicodePreview.textContent = unicodeText || 'Type in Manglish to see Malayalam here...';
+                // Trigger suggestions update for current word
+                this.updateSuggestions();
             } else {
                 unicodePreview.parentElement.classList.add('hidden');
             }
@@ -567,6 +569,101 @@ const App = {
     /**
      * Handle keyboard shortcuts
      */
+    // Suggestions state
+    _sugLastWord: '',
+    _sugTimer: null,
+    _sugChips: null,
+
+    updateSuggestions() {
+        if (!this.manglishMode) return;
+        var editor = document.getElementById('editor');
+        var unicodePreview = document.getElementById('unicode-preview');
+        if (!editor || !unicodePreview) return;
+
+        // Create chips container once
+        if (!this._sugChips) {
+            this._sugChips = document.createElement('div');
+            this._sugChips.style.cssText = 'margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;';
+            unicodePreview.parentNode.appendChild(this._sugChips);
+        }
+
+        var text = editor.value;
+        var before = text.substring(0, editor.selectionStart);
+        var m = before.match(/([a-zA-Z]+)$/);
+        var word = m ? m[0] : '';
+
+        if (!word || word.length < 1) { this._sugChips.innerHTML = ''; return; }
+
+        // Show our result immediately
+        var our = Manglish.toUnicode(word);
+        this._renderSugChips([our]);
+
+        // Fetch Google (debounced)
+        if (word !== this._sugLastWord) {
+            this._sugLastWord = word;
+            var self = this;
+            clearTimeout(this._sugTimer);
+            this._sugTimer = setTimeout(function() { self._fetchGoogleSug(word, our); }, 200);
+        }
+    },
+
+    _fetchGoogleSug(word, ourResult) {
+        var self = this;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://inputtools.google.com/request?text=' + encodeURIComponent(word) + '&itc=ml-t-i0-und&num=5');
+        xhr.onload = function() {
+            if (xhr.status !== 200 || !self.manglishMode) return;
+            try {
+                var r = JSON.parse(xhr.responseText);
+                if (r[0] !== 'SUCCESS') return;
+                var seen = {}; seen[ourResult] = true;
+                var items = [ourResult];
+                for (var i = 0; i < r[1][0][1].length; i++) {
+                    if (!seen[r[1][0][1][i]]) { seen[r[1][0][1][i]] = true; items.push(r[1][0][1][i]); }
+                }
+                self._renderSugChips(items);
+            } catch(e) {}
+        };
+        xhr.send();
+    },
+
+    _renderSugChips(items) {
+        if (!this._sugChips || !this.manglishMode) return;
+        var colors = ['#eef2ff','#fff7ed','#f0fdf4','#fef2f2','#f5f3ff'];
+        var borders = ['#6366f1','#ea580c','#16a34a','#dc2626','#8b5cf6'];
+        var h = '';
+        for (var j = 0; j < items.length; j++) {
+            var ci = j % colors.length;
+            h += '<span data-ml="' + items[j].replace(/"/g, '&quot;') + '" ' +
+                'style="display:inline-block;padding:4px 12px;border-radius:16px;cursor:pointer;font-size:17px;' +
+                'font-family:\'Noto Sans Malayalam\',sans-serif;background:' + colors[ci] + ';border:1.5px solid ' + borders[ci] + ';' +
+                'color:' + borders[ci] + ';transition:all 0.15s;" ' +
+                'onmouseover="this.style.transform=\'scale(1.04)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
+                items[j] + '</span>';
+        }
+        this._sugChips.innerHTML = h;
+        var self = this;
+        var els = this._sugChips.querySelectorAll('span');
+        for (var k = 0; k < els.length; k++) {
+            els[k].addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                var ml = this.getAttribute('data-ml');
+                var editor = document.getElementById('editor');
+                var text = editor.value;
+                var before = text.substring(0, editor.selectionStart);
+                var m2 = before.match(/([a-zA-Z]+)$/);
+                if (!m2) return;
+                var start = before.length - m2[0].length;
+                editor.value = text.substring(0, start) + ml + text.substring(editor.selectionStart);
+                editor.selectionStart = editor.selectionEnd = start + ml.length;
+                self._sugChips.innerHTML = '';
+                self._sugLastWord = '';
+                editor.dispatchEvent(new Event('input', { bubbles: true }));
+                editor.focus();
+            });
+        }
+    },
+
     handleKeyboard(e) {
         // Ctrl+S to download
         if (e.ctrlKey && e.key === 's') {
