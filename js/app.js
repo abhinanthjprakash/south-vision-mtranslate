@@ -4,7 +4,7 @@
  */
 
 const App = {
-    manglishMode: false,
+    manglishMode: true,
     fileName: 'untitled.txt',
     undoStack: [],
     maxUndo: 50,
@@ -19,6 +19,17 @@ const App = {
         this.bindToolbar();
         this.bindKeyboardLayoutSelector();
         this.bindManglishToggle();
+        // Manglish ON by default — set initial button/indicator state
+        const manglishBtn = document.getElementById('btn-manglish');
+        if (manglishBtn) {
+            manglishBtn.classList.add('active');
+            manglishBtn.textContent = '✓ Manglish ON';
+        }
+        const manglishIndicator = document.getElementById('manglish-indicator');
+        if (manglishIndicator) manglishIndicator.style.display = 'inline-block';
+        const editorEl = document.getElementById('editor');
+        if (editorEl) editorEl.placeholder = 'Type in English (Manglish)... e.g., "ente peru" → "എന്റെ പേര്"';
+
         this.updateCounters();
         this.updateFMLPreview();
 
@@ -347,39 +358,11 @@ const App = {
      * Real-time Manglish conversion
      */
     convertManglishRealTime() {
-        const editor = document.getElementById('editor');
-        const cursorPos = editor.selectionStart;
-        const text = editor.value;
-
-        // Only convert the last typed word/phrase to avoid re-converting entire text
-        const before = text.substring(0, cursorPos);
-        const after = text.substring(cursorPos);
-
-        // Find the last word boundary before cursor
-        const lastSpace = Math.max(
-            before.lastIndexOf(' '),
-            before.lastIndexOf('\n'),
-            before.lastIndexOf('\t'),
-            before.lastIndexOf('.'),
-            before.lastIndexOf(','),
-            before.lastIndexOf('!'),
-            before.lastIndexOf('?'),
-            0
-        );
-
-        const wordStart = lastSpace > 0 ? lastSpace + 1 : 0;
-        const prefix = before.substring(0, wordStart);
-        const word = before.substring(wordStart);
-
-        if (word.length >= 1 && /[a-zA-Z]/.test(word)) {
-            const converted = Manglish.toUnicode(word);
-            if (converted !== word && /[ഀ-ൿ]/.test(converted)) {
-                const newText = prefix + converted + after;
-                const newPos = prefix.length + converted.length;
-                editor.value = newText;
-                editor.selectionStart = editor.selectionEnd = newPos;
-            }
-        }
+        // Don't modify the editor — keep raw Manglish input intact.
+        // The preview panel shows the converted result in real-time.
+        // This allows the dictionary to match complete words (e.g. "malayalam")
+        // instead of processing letter-by-letter mixed text.
+        this.updateFMLPreview();
     },
 
     /**
@@ -408,8 +391,15 @@ const App = {
         }
 
         let unicodeText = text;
-        if (this.manglishMode) {
+        // Auto-convert if text has English (Manglish) letters
+        if (/[a-zA-Z]/.test(text)) {
             unicodeText = Manglish.toUnicode(text);
+        }
+
+        // Update the Malayalam preview so user can visually confirm correctness
+        const unicodePreview = document.getElementById('unicode-preview');
+        if (unicodePreview) {
+            unicodePreview.textContent = unicodeText || 'Type in Manglish to see Malayalam here...';
         }
 
         const fmlText = Converter.unicodeToFML(unicodeText);

@@ -50,11 +50,6 @@
 </div>
 <div id="voice-indicator" class="voice-indicator"><span class="voice-dot"></span><span id="voice-text" class="voice-text">Listening... Speak in Malayalam</span></div>
 <div class="main-content">
-    <div class="steps">
-        <div class="step"><span class="step-num">1</span> Type Malayalam</div>
-        <div class="step"><span class="step-num">2</span> Click Convert</div>
-        <div class="step"><span class="step-num">3</span> Copy & Paste</div>
-    </div>
     <div class="conversion-bar">
         <img src="img/logo.gif" alt="">
         <span class="conversion-label">Convert:</span>
@@ -72,6 +67,10 @@
         <div class="card">
             <div class="card-header"><div class="card-header-title"><img src="img/logo.gif" alt=""> Conversion Output</div><span class="card-header-badge">Result</span></div>
             <div class="preview-content">
+                <div class="preview-item" style="background:#fefce8;border:2px dashed #eab308;border-radius:8px;">
+                    <h4>👁️ Malayalam Preview — Confirm your text is correct</h4>
+                    <div id="unicode-preview" style="font-family:'Noto Sans Malayalam',sans-serif;font-size:26px;min-height:40px;line-height:1.8;word-break:break-all;color:#1e293b;">Type in Manglish to see Malayalam here...</div>
+                </div>
                 <div class="preview-item"><h4>🔤 FML Output — For Photoshop, Illustrator</h4><code id="fml-preview">FML encoded text will appear here...</code><div class="preview-note">① Click "Copy as FML" above &nbsp; ② Paste into Photoshop with FML font</div></div>
                 <div class="preview-item"><h4>📝 ML Output — Legacy Malayalam Fonts</h4><code id="ml-preview">ML encoded text will appear here...</code><div class="preview-note">① Click "Copy as ML" above &nbsp; ② Paste with ML-TT font</div></div>
             </div>
